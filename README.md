@@ -8,70 +8,69 @@
 
 ---
 
-## ✨ 功能特点
-
-- ☑️ **一键打卡** — 点击即完成，动效流畅
-- 🔥 **连续天数追踪** — 自动统计连续打卡天数
-- 📊 **30天热力图** — 直观查看历史完成情况
-- 🎯 **自定义事项** — 20个 emoji 图标自由搭配
-- 📱 **双端支持** — Windows 桌面版 + Android 手机版
-- 🔒 **完全本地** — 数据存储在设备本地，无需注册，无需网络
-
----
-
 ## 📥 下载
 
-| 平台 | 下载 | 系统要求 |
-|------|------|---------|
-| Windows | [下载 .exe](https://github.com/fengge889-Jon/daily-checkin/blob/main/每日打卡.exe) | Windows 10 / 11 |
-| Android | [下载 .apk](https://github.com/fengge889-Jon/daily-checkin/blob/main/每日打卡.apk) | Android 7.0+ |
+| 平台 | 下载链接 | 系统要求 |
+|------|---------|---------|
+| 🖥️ Windows | [**下载 每日打卡.exe**](https://github.com/fengge889-Jon/daily-checkin/raw/refs/heads/main/%E6%AF%8F%E6%97%A5%E6%89%93%E5%8D%A1.exe) | Windows 10 / 11 |
+| 📱 Android | [**下载 每日打卡.apk**](https://github.com/fengge889-Jon/daily-checkin/raw/refs/heads/main/%E6%AF%8F%E6%97%A5%E6%89%93%E5%8D%A1.apk) | Android 7.0+ |
 
-> Windows 版无需安装，双击 .exe 直接运行。  
-> Android 版安装前需在手机设置中开启「允许安装未知来源应用」。
+> **Windows**：无需安装，双击 .exe 直接运行，无需 Python。  
+> **Android**：安装前在手机「设置 → 安全」中开启「允许安装未知来源应用」。
 
 ---
 
-## 📸 截图
+## ✨ 功能特点
 
-| 打卡页 | 统计页 | Windows 桌面版 |
-|-------|-------|--------------|
-| （截图） | （截图） | （截图） |
+- ☑️ **一键打卡** — 点击即完成，带流畅动效
+- 🔥 **连续天数追踪** — 自动统计连续打卡天数，培养习惯
+- 📊 **30天热力图** — 深绿=全部完成，浅绿=部分完成，一目了然
+- 🎯 **自定义事项** — 20个 emoji 图标随意搭配，随时增删
+- 📱 **双端覆盖** — Windows 桌面版 + Android 手机版，随时打卡
+- 🔒 **完全本地存储** — 数据存在设备本地，无需注册，无需联网，完全私密
+
+---
+
+## 📸 界面截图
+
+| 打卡页 | 添加事项 | 统计页 |
+|-------|---------|-------|
+| 点击卡片完成打卡 | 选图标+填名称 | 查看完成率和连续天数 |
 
 ---
 
 ## 🛠️ 技术栈
 
-- **Windows 版**：Python 3 + Tkinter，PyInstaller 打包
+- **Windows 版**：Python 3 + Tkinter，PyInstaller 单文件打包
 - **Android 版**：原生 Android（Java）+ WebView，HTML/CSS/JS 界面
 
 ---
 
 ## 🙏 赞赏支持
 
-如果这个软件对你有帮助，欢迎请我喝杯咖啡 ☕
+如果这个软件对你有帮助，欢迎请我喝杯咖啡 ☕  
+你的支持是我持续更新的最大动力！
 
 | 微信赞赏 | 支付宝 |
-|---------|-------|
-| ![微信赞赏](wechat.jpg) | ![支付宝](alipay.png) |
-
-你的支持是我持续更新的动力！
+|:-------:|:-----:|
+| ![微信赞赏](wechat.png) | ![支付宝](alipay.jpg) |
 
 ---
 
-## 📋 更新计划
+## 📋 后续更新计划
 
-- [ ] 云同步功能
+- [ ] 云端同步（Windows ↔ Android 数据互通）
 - [ ] 自定义主题颜色
-- [ ] 数据导出（CSV）
+- [ ] 数据导出为 CSV
 - [ ] iOS 版本
-- [ ] 小组件支持
+- [ ] 桌面小组件
 
 ---
 
 ## 📄 开源协议
 
-MIT License — 可以自由使用、修改和分发。
+[MIT License](LICENSE) — 可自由使用、修改和分发，保留版权声明即可。
 
 ---
 
-如有问题或建议，欢迎提 [Issue](../../issues) 或发邮件联系。
+有问题或建议欢迎提 [Issue](../../issues)，也欢迎 Pull Request 一起改进！
