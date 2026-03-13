@@ -23,8 +23,8 @@
 
 | 平台 | 下载 | 系统要求 |
 |------|------|---------|
-| Windows | [下载 .exe](#) | Windows 10 / 11 |
-| Android | [下载 .apk](#) | Android 7.0+ |
+| Windows | [下载 .exe](https://github.com/fengge889-Jon/daily-checkin/blob/main/每日打卡.exe) | Windows 10 / 11 |
+| Android | [下载 .apk](https://github.com/fengge889-Jon/daily-checkin/blob/main/每日打卡.apk) | Android 7.0+ |
 
 > Windows 版无需安装，双击 .exe 直接运行。  
 > Android 版安装前需在手机设置中开启「允许安装未知来源应用」。
