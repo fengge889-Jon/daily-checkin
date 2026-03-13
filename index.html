@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日打卡 · 养成好习惯，从今天开始</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1612;--ink2:#4a4540;--ink3:#8a8278;
+  --cream:#faf7f2;--warm:#f0ebe0;--border:#e2dbd0;
+  --green:#3d6b4f;--green-lt:#c8e6d4;--green-bg:#eef6f1;
+  --amber:#b8732a;--amber-lt:#f5e4c8;
+  --red:#b84040;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Noto Serif SC',serif;
+  background:var(--cream);color:var(--ink);
+  overflow-x:hidden;
+}
+
+/* ── 滚动动画基础 ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+.reveal-left{opacity:0;transform:translateX(-40px);transition:opacity .7s ease,transform .7s ease}
+.reveal-left.in{opacity:1;transform:none}
+.reveal-right{opacity:0;transform:translateX(40px);transition:opacity .7s ease,transform .7s ease}
+.reveal-right.in{opacity:1;transform:none}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 48px;
+  background:rgba(250,247,242,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s;
+}
+nav.scrolled{border-color:var(--border)}
+.nav-logo{font-size:18px;font-weight:700;color:var(--green);letter-spacing:.02em}
+.nav-logo span{color:var(--ink3);font-weight:300;font-size:13px;margin-left:8px}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{font-size:14px;color:var(--ink2);text-decoration:none;
+  font-family:'DM Mono',monospace;letter-spacing:.04em;
+  transition:color .2s}
+.nav-links a:hover{color:var(--green)}
+.nav-cta{background:var(--ink);color:var(--cream);
+  padding:9px 22px;border-radius:2px;font-size:13px;
+  font-family:'DM Mono',monospace;text-decoration:none;
+  letter-spacing:.06em;transition:background .2s}
+.nav-cta:hover{background:var(--green)}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:120px 48px 80px;
+  position:relative;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 40%, rgba(61,107,79,.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 10% 70%, rgba(184,115,42,.06) 0%, transparent 60%);
+}
+/* 装饰圆圈 */
+.deco-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(61,107,79,.12);
+  animation:rotate 30s linear infinite;
+}
+.deco-ring:nth-child(1){width:600px;height:600px;right:-200px;top:-150px;animation-duration:40s}
+.deco-ring:nth-child(2){width:400px;height:400px;right:-50px;top:50px;animation-direction:reverse;animation-duration:28s}
+.deco-ring:nth-child(3){width:200px;height:200px;left:5%;bottom:10%;animation-duration:20s}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.hero-inner{position:relative;z-index:1;max-width:1100px;margin:0 auto;width:100%;
+  display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--green);text-transform:uppercase;
+  border:1px solid var(--green-lt);
+  background:var(--green-bg);
+  padding:6px 14px;border-radius:2px;
+  margin-bottom:28px;
+}
+.tag-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+.hero-h1{
+  font-size:clamp(42px,5vw,68px);font-weight:900;line-height:1.08;
+  letter-spacing:-.02em;margin-bottom:24px;
+}
+.hero-h1 em{font-style:normal;color:var(--green);
+  position:relative;display:inline-block}
+.hero-h1 em::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;height:3px;
+  background:var(--green);transform:scaleX(0);transform-origin:left;
+  transition:transform .8s .5s ease;
+}
+.hero-h1 em.in::after{transform:scaleX(1)}
+
+.hero-sub{font-size:17px;color:var(--ink2);line-height:1.8;
+  font-weight:300;margin-bottom:40px;max-width:420px}
+
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:48px}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--green);color:#fff;
+  padding:14px 28px;border-radius:2px;
+  font-size:14px;font-weight:600;text-decoration:none;
+  transition:all .2s;letter-spacing:.02em;
+}
+.btn-primary:hover{background:#2d5440;transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(61,107,79,.25)}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1.5px solid var(--border);color:var(--ink2);
+  padding:14px 28px;border-radius:2px;
+  font-size:14px;text-decoration:none;
+  transition:all .2s;letter-spacing:.02em;
+}
+.btn-secondary:hover{border-color:var(--ink2);color:var(--ink)}
+
+.hero-stats{display:flex;gap:32px}
+.stat-item{text-align:left}
+.stat-num{font-size:28px;font-weight:700;color:var(--ink);line-height:1}
+.stat-label{font-size:12px;color:var(--ink3);font-family:'DM Mono',monospace;
+  letter-spacing:.06em;margin-top:4px}
+
+/* 手机 mockup */
+.phone-wrap{position:relative;display:flex;justify-content:center}
+.phone-shadow{
+  position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);
+  width:200px;height:40px;background:rgba(0,0,0,.12);
+  filter:blur(24px);border-radius:50%;
+}
+.phone{
+  width:260px;height:520px;background:#1a1612;
+  border-radius:40px;padding:12px;
+  box-shadow:0 40px 80px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.05);
+  position:relative;
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.phone-screen{
+  background:var(--cream);border-radius:30px;
+  height:100%;overflow:hidden;position:relative;
+}
+.phone-notch{
+  width:80px;height:24px;background:#1a1612;
+  border-radius:0 0 14px 14px;margin:0 auto;
+}
+.phone-content{padding:10px 14px}
+.p-date{font-size:9px;color:var(--ink3);font-family:'DM Mono',monospace;margin-bottom:2px}
+.p-title{font-size:16px;font-weight:700;margin-bottom:10px}
+.p-prog-bar{height:4px;background:#e8e2d8;border-radius:2px;margin-bottom:3px;overflow:hidden}
+.p-prog-fill{height:100%;background:var(--green);border-radius:2px;
+  width:67%;animation:prog 3s ease-in-out infinite alternate}
+@keyframes prog{from{width:40%}to{width:85%}}
+.p-task{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid #e8e2d8;border-radius:10px;
+  padding:8px 10px;margin-bottom:6px;font-size:10px;
+}
+.p-task.done{background:var(--green-bg);border-color:var(--green-lt);color:var(--ink3)}
+.p-chk{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.p-chk.empty{border:1.5px solid #ccc}
+.p-chk.filled{background:var(--green);display:flex;align-items:center;justify-content:center}
+.p-chk.filled::after{content:'✓';color:#fff;font-size:7px}
+.p-streak{
+  display:flex;align-items:center;gap:4px;margin-top:10px;
+  background:var(--amber-lt);border-radius:12px;padding:5px 10px;
+  font-size:9px;color:var(--amber);font-weight:600;
+}
+
+/* ── SECTION COMMON ── */
+section{padding:100px 48px}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-tag{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--ink3);text-transform:uppercase;margin-bottom:16px;
+}
+.section-h2{font-size:clamp(32px,4vw,48px);font-weight:800;
+  line-height:1.1;letter-spacing:-.02em;margin-bottom:20px}
+.section-sub{font-size:16px;color:var(--ink2);line-height:1.8;
+  font-weight:300;max-width:520px}
+
+/* ── FEATURES ── */
+#features{background:var(--warm)}
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  margin-top:60px;background:var(--border);border:1px solid var(--border);
+}
+.feat-card{
+  background:var(--cream);padding:48px 40px;
+  transition:background .2s;position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--green);transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;
+}
+.feat-card:hover{background:#fff}
+.feat-card:hover::before{transform:scaleX(1)}
+.feat-icon{font-size:36px;margin-bottom:24px;display:block}
+.feat-title{font-size:20px;font-weight:700;margin-bottom:12px;letter-spacing:-.01em}
+.feat-desc{font-size:14px;color:var(--ink2);line-height:1.8;font-weight:300}
+
+/* ── PLATFORMS ── */
+.platforms-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:60px
+}
+.platform-card{
+  border:1px solid var(--border);padding:48px;
+  position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s;
+}
+.platform-card:hover{border-color:var(--green);transform:translateY(-4px)}
+.platform-badge{
+  position:absolute;top:24px;right:24px;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 10px;border-radius:2px;
+}
+.badge-win{background:rgba(61,107,79,.1);color:var(--green)}
+.badge-android{background:rgba(184,115,42,.1);color:var(--amber)}
+.platform-icon{font-size:48px;margin-bottom:24px}
+.platform-name{font-size:24px;font-weight:700;margin-bottom:10px}
+.platform-desc{font-size:14px;color:var(--ink2);line-height:1.8;
+  font-weight:300;margin-bottom:28px}
+.platform-specs{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.spec-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
+.spec-dot{width:4px;height:4px;border-radius:50%;background:var(--green);flex-shrink:0}
+.btn-download{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink);color:var(--cream);
+  padding:12px 24px;border-radius:2px;
+  font-size:13px;font-family:'DM Mono',monospace;
+  text-decoration:none;letter-spacing:.06em;
+  transition:all .2s;
+}
+.btn-download:hover{background:var(--green)}
+
+/* ── SCREENS ── */
+#screens{background:var(--ink);color:var(--cream)}
+#screens .section-tag{color:rgba(255,255,255,.4)}
+#screens .section-h2{color:var(--cream)}
+#screens .section-sub{color:rgba(255,255,255,.6)}
+.screens-scroll{
+  display:flex;gap:24px;margin-top:60px;overflow-x:auto;
+  padding-bottom:20px;scrollbar-width:none;
+}
+.screens-scroll::-webkit-scrollbar{display:none}
+.screen-item{flex-shrink:0}
+.screen-label{font-family:'DM Mono',monospace;font-size:11px;
+  letter-spacing:.08em;color:rgba(255,255,255,.4);
+  text-transform:uppercase;margin-bottom:14px}
+.mini-phone{
+  width:160px;height:300px;background:#2a2520;
+  border-radius:24px;padding:8px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.mini-screen{background:var(--cream);border-radius:18px;height:100%;
+  overflow:hidden;padding:10px 8px}
+.ms-bar{height:4px;background:#e8e2d8;border-radius:2px;margin:8px 0 6px;overflow:hidden}
+.ms-fill{height:100%;background:var(--green);border-radius:2px}
+.ms-task{height:22px;background:#fff;border-radius:6px;margin-bottom:4px;
+  display:flex;align-items:center;padding:0 8px;gap:5px}
+.ms-dot{width:10px;height:10px;border-radius:50%}
+.ms-line{height:6px;border-radius:3px;background:#e8e2d8;flex:1}
+.ms-done .ms-dot{background:var(--green)}
+.ms-pend .ms-dot{border:1.5px solid #ccc}
+.ms-stat{background:var(--green-bg);border-radius:6px;padding:6px;
+  display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+.ms-sn{font-size:11px;font-weight:700;color:var(--green)}
+.ms-sl{font-size:8px;color:var(--ink3);font-family:'DM Mono',monospace}
+.ms-hist{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px}
+.ms-hc{width:14px;height:14px;border-radius:3px;background:#e8e2d8;font-size:6px;
+  display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.ms-hc.f{background:var(--green);color:#fff}
+.ms-hc.p{background:var(--green-lt)}
+
+/* ── TESTIMONIALS ── */
+#social{background:var(--warm)}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.review-card{background:var(--cream);padding:32px;border:1px solid var(--border)}
+.review-stars{color:var(--amber);font-size:14px;margin-bottom:16px;letter-spacing:2px}
+.review-text{font-size:15px;line-height:1.8;font-weight:300;
+  color:var(--ink2);margin-bottom:20px;font-style:italic}
+.review-author{display:flex;align-items:center;gap:12px}
+.avatar{width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.author-name{font-size:14px;font-weight:600}
+.author-role{font-size:12px;color:var(--ink3)}
+
+/* ── FAQ ── */
+.faq-list{margin-top:48px;border-top:1px solid var(--border)}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{
+  padding:24px 0;display:flex;justify-content:space-between;
+  align-items:center;cursor:pointer;font-size:16px;font-weight:600;
+  list-style:none;
+}
+.faq-q::-webkit-details-marker{display:none}
+.faq-arrow{font-size:12px;color:var(--ink3);transition:transform .3s;font-family:'DM Mono',monospace}
+details[open] .faq-arrow{transform:rotate(180deg)}
+.faq-a{padding:0 0 24px;font-size:15px;color:var(--ink2);
+  line-height:1.8;font-weight:300;max-width:680px}
+
+/* ── CTA ── */
+#cta{
+  background:var(--green);color:#fff;text-align:center;
+  padding:120px 48px;position:relative;overflow:hidden;
+}
+.cta-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 50% 50%, rgba(255,255,255,.06) 0%, transparent 70%);
+}
+#cta .section-tag{color:rgba(255,255,255,.5);text-align:center}
+.cta-h2{font-size:clamp(36px,5vw,60px);font-weight:900;
+  line-height:1.08;letter-spacing:-.02em;margin-bottom:20px;color:#fff}
+.cta-sub{font-size:17px;color:rgba(255,255,255,.75);
+  line-height:1.8;font-weight:300;margin-bottom:48px}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-white{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#fff;color:var(--green);
+  padding:14px 32px;border-radius:2px;
+  font-size:14px;font-weight:700;text-decoration:none;
+  transition:all .2s;
+}
+.btn-white:hover{background:var(--cream);transform:translateY(-2px)}
+.btn-outline-white{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1.5px solid rgba(255,255,255,.4);color:#fff;
+  padding:14px 32px;border-radius:2px;
+  font-size:14px;text-decoration:none;
+  transition:all .2s;
+}
+.btn-outline-white:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);color:rgba(255,255,255,.4);
+  padding:48px;text-align:center}
+.footer-logo{font-size:20px;font-weight:700;color:rgba(255,255,255,.8);
+  margin-bottom:12px}
+.footer-sub{font-size:13px;font-family:'DM Mono',monospace;letter-spacing:.06em}
+
+/* ── 响应式 ── */
+@media(max-width:900px){
+  nav{padding:16px 24px}
+  .nav-links{display:none}
+  #hero{padding:100px 24px 60px}
+  .hero-inner{grid-template-columns:1fr;gap:48px}
+  .phone-wrap{order:-1}
+  .phone{width:220px;height:440px}
+  section{padding:72px 24px}
+  .features-grid{grid-template-columns:1fr}
+  .platforms-grid{grid-template-columns:1fr}
+  .reviews-grid{grid-template-columns:1fr}
+  #cta{padding:80px 24px}
+  footer{padding:32px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">每日打卡 <span>Daily Check-in</span></div>
+  <ul class="nav-links">
+    <li><a href="#features">功能</a></li>
+    <li><a href="#platforms">下载</a></li>
+    <li><a href="#screens">截图</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">立即下载</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="deco-ring"></div>
+    <div class="deco-ring"></div>
+    <div class="deco-ring"></div>
+  </div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag reveal">
+        <span class="tag-dot"></span>
+        Windows & Android 双端同步
+      </div>
+      <h1 class="hero-h1 reveal">
+        养成好习惯，<br>从<em id="hero-em">今天</em>开始
+      </h1>
+      <p class="hero-sub reveal">
+        简洁优雅的每日打卡工具。设定你的目标，每天记录完成情况，用连续打卡的力量坚持下去。
+      </p>
+      <div class="hero-btns reveal">
+        <a href="#platforms" class="btn-primary">⬇ 免费下载</a>
+        <a href="#screens" class="btn-secondary">查看截图 →</a>
+      </div>
+      <div class="hero-stats reveal">
+        <div class="stat-item">
+          <div class="stat-num">双端</div>
+          <div class="stat-label">Windows + Android</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">离线</div>
+          <div class="stat-label">无需网络</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">免费</div>
+          <div class="stat-label">完全免费使用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 手机预览 -->
+    <div class="phone-wrap reveal-right">
+      <div class="phone-shadow"></div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="phone-content">
+            <div class="p-date">2026年3月13日 · 星期五</div>
+            <div class="p-title">今日打卡</div>
+            <div class="p-prog-bar"><div class="p-prog-fill"></div></div>
+            <div style="font-size:9px;color:#888;margin-bottom:10px;font-family:monospace">2 / 3 完成</div>
+            <div class="p-task done">
+              <div class="p-chk filled"></div>
+              <span>💧 喝够 8 杯水</span>
+            </div>
+            <div class="p-task done">
+              <div class="p-chk filled"></div>
+              <span>📚 阅读 30 分钟</span>
+            </div>
+            <div class="p-task">
+              <div class="p-chk empty"></div>
+              <span>🏃 运动锻炼</span>
+            </div>
+            <div class="p-streak">🔥 已连续打卡 7 天</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-tag reveal">核心功能</div>
+    <h2 class="section-h2 reveal">专注于让坚持<br>变得容易</h2>
+    <p class="section-sub reveal">去掉一切不必要的复杂，只留下帮你养成习惯的核心工具。</p>
+
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <span class="feat-icon">☑️</span>
+        <div class="feat-title">一键打卡</div>
+        <div class="feat-desc">点击即打卡，再点取消。配合精美的动效和进度条，每一次完成都令人愉悦。</div>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">🔥</span>
+        <div class="feat-title">连续天数追踪</div>
+        <div class="feat-desc">自动统计你的连续打卡天数。连续的力量是最强大的习惯驱动力。</div>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">📊</span>
+        <div class="feat-title">30天热力图</div>
+        <div class="feat-desc">一眼看清过去一个月的打卡记录，深绿代表全部完成，进步历历在目。</div>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">🎯</span>
+        <div class="feat-title">自定义事项</div>
+        <div class="feat-desc">从20个精选 emoji 中选择图标，为你的打卡事项增添个性，支持随时添加删除。</div>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">📱</span>
+        <div class="feat-title">双端覆盖</div>
+        <div class="feat-desc">Windows 桌面程序 + Android 原生 App，在任何设备上随时打卡。</div>
+      </div>
+      <div class="feat-card reveal">
+        <span class="feat-icon">🔒</span>
+        <div class="feat-title">完全本地存储</div>
+        <div class="feat-desc">数据仅存储在你的设备上，无需注册账号，无需网络，完全私密安全。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section id="platforms">
+  <div class="section-inner">
+    <div class="section-tag reveal">下载</div>
+    <h2 class="section-h2 reveal">选择你的平台</h2>
+    <p class="section-sub reveal">Windows 和 Android 版本均完全免费，数据保存在本地，无需联网。</p>
+
+    <div class="platforms-grid">
+      <div class="platform-card reveal-left">
+        <div class="platform-badge badge-win">Windows</div>
+        <div class="platform-icon">🖥️</div>
+        <div class="platform-name">Windows 桌面版</div>
+        <div class="platform-desc">独立 .exe 可执行文件，双击即用，无需安装 Python 或任何运行环境。</div>
+        <div class="platform-specs">
+          <div class="spec-row"><span class="spec-dot"></span>支持 Windows 10 / 11</div>
+          <div class="spec-row"><span class="spec-dot"></span>单文件，约 10MB</div>
+          <div class="spec-row"><span class="spec-dot"></span>数据保存于 AppData 文件夹</div>
+          <div class="spec-row"><span class="spec-dot"></span>完全离线运行</div>
+        </div>
+        <a href="#" class="btn-download">⬇ 下载 .exe</a>
+      </div>
+
+      <div class="platform-card reveal-right">
+        <div class="platform-badge badge-android">Android</div>
+        <div class="platform-icon">📱</div>
+        <div class="platform-name">Android 手机版</div>
+        <div class="platform-desc">原生 Android App，支持三个页面切换：打卡、添加事项、数据统计。</div>
+        <div class="platform-specs">
+          <div class="spec-row"><span class="spec-dot"></span>支持 Android 7.0+</div>
+          <div class="spec-row"><span class="spec-dot"></span>安装包约 3MB</div>
+          <div class="spec-row"><span class="spec-dot"></span>数据存储于手机本地</div>
+          <div class="spec-row"><span class="spec-dot"></span>完全离线，无广告</div>
+        </div>
+        <a href="#" class="btn-download">⬇ 下载 .apk</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section id="screens">
+  <div class="section-inner">
+    <div class="section-tag reveal">界面预览</div>
+    <h2 class="section-h2 reveal">简洁，但不简单</h2>
+    <p class="section-sub reveal">每一个细节都经过精心设计，让打卡这件事变得赏心悦目。</p>
+
+    <div class="screens-scroll">
+      <!-- 打卡页 -->
+      <div class="screen-item reveal">
+        <div class="screen-label">☑ 打卡页</div>
+        <div class="mini-phone">
+          <div class="mini-screen">
+            <div style="font-size:8px;color:#aaa;font-family:monospace;margin-bottom:2px">今日打卡</div>
+            <div class="ms-bar"><div class="ms-fill" style="width:66%"></div></div>
+            <div class="ms-task ms-done"><div class="ms-dot"></div><div class="ms-line" style="width:60%;background:#c8e6d4"></div></div>
+            <div class="ms-task ms-done"><div class="ms-dot"></div><div class="ms-line" style="width:75%;background:#c8e6d4"></div></div>
+            <div class="ms-task ms-pend"><div class="ms-dot"></div><div class="ms-line"></div></div>
+            <div class="ms-task ms-pend"><div class="ms-dot"></div><div class="ms-line" style="width:50%"></div></div>
+            <div class="ms-hist">
+              <div class="ms-hc f">1</div><div class="ms-hc f">2</div><div class="ms-hc f">3</div>
+              <div class="ms-hc p">4</div><div class="ms-hc f">5</div><div class="ms-hc">6</div>
+              <div class="ms-hc f">7</div><div class="ms-hc f">8</div><div class="ms-hc p">9</div>
+              <div class="ms-hc f">10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 添加页 -->
+      <div class="screen-item reveal">
+        <div class="screen-label">＋ 添加页</div>
+        <div class="mini-phone">
+          <div class="mini-screen">
+            <div style="font-size:10px;font-weight:700;margin:6px 0 10px">新增事项</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:10px">
+              <div style="aspect-ratio:1;background:#eef6f1;border-radius:6px;border:2px solid #3d6b4f;display:flex;align-items:center;justify-content:center;font-size:11px">💧</div>
+              <div style="aspect-ratio:1;background:#f0ebe0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px">📚</div>
+              <div style="aspect-ratio:1;background:#f0ebe0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px">🏃</div>
+              <div style="aspect-ratio:1;background:#f0ebe0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px">💪</div>
+              <div style="aspect-ratio:1;background:#f0ebe0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px">🥗</div>
+            </div>
+            <div style="background:#fff;border:1.5px solid #3d6b4f;border-radius:8px;padding:6px 8px;font-size:9px;margin-bottom:8px;color:#4a4540">每天冥想 10 分钟</div>
+            <div style="background:#3d6b4f;color:#fff;border-radius:8px;padding:7px;font-size:9px;text-align:center;font-weight:600">✓ 添加事项</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 统计页 -->
+      <div class="screen-item reveal">
+        <div class="screen-label">📊 统计页</div>
+        <div class="mini-phone">
+          <div class="mini-screen">
+            <div style="font-size:10px;font-weight:700;margin:6px 0 10px">打卡统计</div>
+            <div class="ms-stat">
+              <div><div class="ms-sn">21</div><div class="ms-sl">当前连续</div></div>
+              <div><div class="ms-sn">35</div><div class="ms-sl">历史最长</div></div>
+              <div><div class="ms-sn">18</div><div class="ms-sl">近30天</div></div>
+              <div><div class="ms-sn">3/4</div><div class="ms-sl">今日完成</div></div>
+            </div>
+            <div style="font-size:7px;color:#aaa;margin:8px 0 4px;font-family:monospace;letter-spacing:.05em">各项完成率</div>
+            <div style="background:#fff;border:1px solid #e8e2d8;border-radius:6px;padding:5px 6px;margin-bottom:4px">
+              <div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:3px"><span>💧 喝水</span><span style="color:#3d6b4f">90%</span></div>
+              <div style="height:3px;background:#e8e2d8;border-radius:2px;overflow:hidden"><div style="width:90%;height:100%;background:#3d6b4f;border-radius:2px"></div></div>
+            </div>
+            <div style="background:#fff;border:1px solid #e8e2d8;border-radius:6px;padding:5px 6px">
+              <div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:3px"><span>📚 阅读</span><span style="color:#3d6b4f">73%</span></div>
+              <div style="height:3px;background:#e8e2d8;border-radius:2px;overflow:hidden"><div style="width:73%;height:100%;background:#3d6b4f;border-radius:2px"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Win 桌面 -->
+      <div class="screen-item reveal">
+        <div class="screen-label">🖥 桌面版</div>
+        <div class="mini-phone" style="width:240px;height:300px;border-radius:12px">
+          <div class="mini-screen" style="border-radius:8px;background:#FAF8F4">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 10px 6px">
+              <div>
+                <div style="font-size:7px;color:#aaa;font-family:monospace;margin-bottom:1px">2026年3月13日</div>
+                <div style="font-size:12px;font-weight:700">今日打卡</div>
+              </div>
+              <div style="background:#FDF4E7;border:1px solid #F0D9A8;border-radius:10px;padding:3px 8px;font-size:8px;color:#C17F2A;font-weight:600">🔥 21天</div>
+            </div>
+            <div style="padding:0 10px">
+              <div style="height:4px;background:#EDE8DF;border-radius:2px;margin-bottom:8px;overflow:hidden">
+                <div style="width:66%;height:100%;background:#4A7C59;border-radius:2px"></div>
+              </div>
+              <div style="background:#EDF4F0;border:1px solid #D4EADB;border-radius:8px;padding:6px 8px;display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#4A7C59;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:7px">✓</span></div>
+                <span style="font-size:9px;color:#9BB8A4;text-decoration:line-through">💧 喝够 8 杯水</span>
+              </div>
+              <div style="background:#fff;border:1px solid #E8E2D8;border-radius:8px;padding:6px 8px;display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #ccc"></div>
+                <span style="font-size:9px">🏃 运动锻炼</span>
+              </div>
+              <div style="background:#fff;border:1px solid #E8E2D8;border-radius:8px;padding:6px 8px;display:flex;align-items:center;gap:6px">
+                <div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #ccc"></div>
+                <span style="font-size:9px">📚 阅读 30 分钟</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="social">
+  <div class="section-inner">
+    <div class="section-tag reveal">用户反馈</div>
+    <h2 class="section-h2 reveal">他们都在用</h2>
+
+    <div class="reviews-grid">
+      <div class="review-card reveal">
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">「界面非常简洁，没有任何多余的东西。用了两周，喝水和阅读都坚持下来了，热力图让我特别有成就感。」</div>
+        <div class="review-author">
+          <div class="avatar" style="background:#4A7C59">小</div>
+          <div>
+            <div class="author-name">小雨同学</div>
+            <div class="author-role">在读研究生</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal">
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">「终于找到一款不需要注册、不收集数据的打卡软件。数据在自己手里，用着放心。Windows 版和手机版功能一致。」</div>
+        <div class="review-author">
+          <div class="avatar" style="background:#C17F2A">程</div>
+          <div>
+            <div class="author-name">程序员老王</div>
+            <div class="author-role">独立开发者</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal">
+        <div class="review-stars">★★★★☆</div>
+        <div class="review-text">「打卡软件就应该这么简单。每天早上打开 App 完成打卡，已经连续 45 天了，比之前用过的任何 App 都坚持得久。」</div>
+        <div class="review-author">
+          <div class="avatar" style="background:#b84040">晨</div>
+          <div>
+            <div class="author-name">晨跑爱好者</div>
+            <div class="author-role">健身达人</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-inner">
+    <div class="section-tag reveal">常见问题</div>
+    <h2 class="section-h2 reveal">你可能想问的</h2>
+
+    <div class="faq-list reveal">
+      <details class="faq-item">
+        <summary class="faq-q">这款软件真的完全免费吗？<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">是的，每日打卡目前完全免费，无内购、无广告、无订阅。Windows 版和 Android 版均可免费下载使用。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">我的数据安全吗？会上传到云端吗？<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">所有数据完全保存在你的本地设备上，不需要注册账号，软件运行也不需要网络连接。你的数据只属于你自己。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Android 版需要什么系统版本？<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">Android 版支持 Android 7.0（Nougat）及以上版本，覆盖绝大多数在用的安卓手机。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Windows 版需要安装吗？<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">不需要安装。下载单个 .exe 文件后直接双击运行即可，也不需要提前安装 Python 等运行环境。</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">能不能在多台设备间同步数据？<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">目前版本暂不支持自动云同步。如需在多台设备间迁移数据，可以手动复制数据文件（data.json）。云同步功能计划在未来版本中支持。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-bg"></div>
+  <div style="position:relative;z-index:1;max-width:700px;margin:0 auto;text-align:center">
+    <div class="section-tag reveal">开始使用</div>
+    <h2 class="cta-h2 reveal">第一步，<br>就是今天打卡</h2>
+    <p class="cta-sub reveal">坚持一件事最难的不是第 100 天，而是第 1 天。<br>下载每日打卡，从现在开始。</p>
+    <div class="cta-btns reveal">
+      <a href="#" class="btn-white">🖥️ 下载 Windows 版</a>
+      <a href="#" class="btn-outline-white">📱 下载 Android 版</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">每日打卡</div>
+  <div class="footer-sub">简单 · 本地 · 免费 · 无广告</div>
+</footer>
+
+<script>
+// 导航滚动效果
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
+});
+
+// 滚动揭示动画
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('in');
+      // 英雄标题下划线
+      if(e.target.classList.contains('hero-h1')){
+        document.getElementById('hero-em').classList.add('in');
+      }
+      observer.unobserve(e.target);
+    }
+  });
+},{threshold:.12});
+
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right')
+  .forEach(el=>observer.observe(el));
+
+// 数字计数动画
+function animateCount(el, target, duration=1500){
+  let start=0, startTime=null;
+  function step(time){
+    if(!startTime) startTime=time;
+    const prog = Math.min((time-startTime)/duration,1);
+    const eased = 1-Math.pow(1-prog,3);
+    el.textContent = Math.round(eased*target);
+    if(prog<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// FAQ 平滑开合
+document.querySelectorAll('details').forEach(d=>{
+  d.addEventListener('toggle',()=>{
+    if(d.open) d.querySelector('.faq-a').style.animation='fadeIn .3s ease';
+  });
+});
+</script>
+</body>
+</html>
