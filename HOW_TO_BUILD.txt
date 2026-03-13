@@ -1,0 +1,3 @@
+README: Use Android Studio to build this project.
+Open the DailyCheckIn folder in Android Studio, then:
+Build > Build Bundle(s) / APK(s) > Build APK(s)

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#FAF8F4">
+<title>每日打卡</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#FAF8F4;--card:#fff;--border:#E8E2D8;
+  --green:#4A7C59;--green-bg:#EDF4F0;--green-lt:#D4EADB;
+  --amber:#C17F2A;--amber-bg:#FDF4E7;
+  --red:#C0392B;--red-bg:#FDECEA;
+  --text:#2C2820;--t2:#7A7267;--t3:#B5AFA6;
+  --prog-bg:#EDE8DF;--done-fg:#9BB8A4;
+  
+  
+}
+html,body{height:100%;background:var(--bg);overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans CJK SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:var(--text)}
+
+/* ── 页面系统 ── */
+#root{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.page{display:none;flex-direction:column;flex:1;overflow:hidden}
+.page.active{display:flex}
+
+/* 状态栏占位 */
+.safe-top{height:0px;flex-shrink:0;background:var(--bg)}
+
+/* 滚动区 */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px}
+#page-home .scroll{padding-bottom:16px}
+#page-add  .scroll{padding-bottom:16px}
+#page-stats .scroll{padding-bottom:16px}
+
+/* ── Tab Bar ── */
+.tabbar{
+  flex-shrink:0;background:#fff;border-top:1px solid var(--border);
+  display:flex;padding-bottom:max(0px, var(--nav-h, 0px));
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:9px 0 5px;border:none;background:none;cursor:pointer;
+  font-family:inherit;color:var(--t3);gap:3px;transition:color .15s}
+.tab.on{color:var(--green)}
+.tab-icon{font-size:21px;line-height:1}
+.tab-lbl{font-size:10px;font-weight:500}
+
+/* ── 顶栏 ── */
+.hd{padding:16px 0 10px;display:flex;justify-content:space-between;align-items:flex-start}
+.hd-l .date{font-size:11px;color:var(--t3);letter-spacing:.05em;margin-bottom:3px}
+.hd-l .title{font-size:23px;font-weight:700}
+.streak-pill{display:flex;align-items:center;gap:4px;background:var(--amber-bg);
+  border:1px solid #F0D9A8;border-radius:20px;padding:6px 12px;
+  font-size:12px;font-weight:600;color:var(--amber);margin-top:6px;white-space:nowrap}
+
+/* ── 进度 ── */
+.prog-row{display:flex;justify-content:space-between;font-size:12px;
+  color:var(--t2);margin-bottom:6px}
+.prog-row b{color:var(--text);font-weight:600}
+.prog-track{height:7px;background:var(--prog-bg);border-radius:5px;overflow:hidden;margin-bottom:14px}
+.prog-fill{height:100%;background:var(--green);border-radius:5px;
+  transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+/* ── 完成横幅 ── */
+.banner{background:var(--green-bg);border:1px solid var(--green-lt);
+  border-radius:14px;padding:11px;text-align:center;
+  font-size:14px;font-weight:600;color:var(--green);
+  margin-bottom:12px;max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .3s,opacity .3s,margin .3s,padding .3s}
+.banner.show{max-height:60px;opacity:1}
+
+/* ── 任务卡片 ── */
+.task-list{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+.task-card{background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:14px 14px;display:flex;align-items:center;
+  gap:12px;cursor:pointer;user-select:none;
+  transition:transform .1s,background .2s,border-color .2s}
+.task-card:active{transform:scale(.975)}
+.task-card.done{background:var(--green-bg);border-color:var(--green-lt)}
+
+.chk{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.task-card.done .chk{background:var(--green);border-color:var(--green)}
+.chk svg{opacity:0;transform:scale(.3);transition:all .2s}
+.task-card.done .chk svg{opacity:1;transform:scale(1)}
+
+.t-em{font-size:20px;flex-shrink:0;width:28px;text-align:center}
+.t-tx{flex:1;font-size:15px;line-height:1.4;transition:color .2s}
+.task-card.done .t-tx{color:var(--done-fg);text-decoration:line-through;text-decoration-color:#b5dac3}
+
+.t-del{font-size:15px;color:var(--t3);padding:6px;border-radius:8px;
+  flex-shrink:0;line-height:1;transition:all .15s}
+.t-del:active{background:var(--red-bg);color:var(--red)}
+
+.empty{text-align:center;padding:50px 0;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-text{font-size:14px}
+
+/* ── 历史热力图 ── */
+.sect-lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--t3);font-weight:500;margin-bottom:9px}
+.hist-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:20px}
+.hc{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:9px;font-weight:600;
+  background:var(--prog-bg);color:var(--t3)}
+.hc.full{background:var(--green);color:#fff}
+.hc.part{background:var(--green-lt);color:var(--green)}
+.hc.today{box-shadow:0 0 0 2px var(--green)}
+
+/* ── 添加页 ── */
+.page-title{font-size:20px;font-weight:700;padding:16px 0 18px}
+.form-lbl{font-size:12px;color:var(--t2);font-weight:500;letter-spacing:.04em;margin-bottom:8px}
+.emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px}
+.e-btn{aspect-ratio:1;font-size:22px;border-radius:12px;border:2px solid transparent;
+  background:var(--prog-bg);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all .15s}
+.e-btn.sel{border-color:var(--green);background:var(--green-bg)}
+.e-btn:active{transform:scale(.88)}
+.txt-inp{width:100%;border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 14px;font-size:15px;font-family:inherit;background:#fff;
+  color:var(--text);outline:none;transition:border-color .15s;margin-bottom:20px}
+.txt-inp:focus{border-color:var(--green)}
+.btn-primary{width:100%;background:var(--green);color:#fff;border:none;
+  border-radius:14px;padding:15px;font-size:16px;font-weight:600;
+  font-family:inherit;cursor:pointer;transition:opacity .15s}
+.btn-primary:active{opacity:.8}
+
+/* ── 统计页 ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+.stat-num{font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:5px}
+.stat-desc{font-size:12px;color:var(--t2)}
+.stat-card.g{background:var(--green-bg);border-color:var(--green-lt)}
+.stat-card.g .stat-num{color:var(--green)}
+.stat-card.a{background:var(--amber-bg);border-color:#F0D9A8}
+.stat-card.a .stat-num{color:var(--amber)}
+
+.ts-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.ts-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.ts-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ts-name{font-size:14px;display:flex;align-items:center;gap:6px}
+.ts-pct{font-size:13px;font-weight:600;color:var(--green)}
+.ts-bg{height:5px;background:var(--prog-bg);border-radius:3px;overflow:hidden}
+.ts-fill{height:100%;background:var(--green);border-radius:3px}
+
+/* 动画 */
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.13)}100%{transform:scale(1)}}
+.popping{animation:pop .22s ease}
+
+/* 删除确认弹窗 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:flex;align-items:flex-end;z-index:999;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 24px;
+  width:100%;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.modal-overlay.show .modal-box{transform:none}
+.modal-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.btn-cancel{flex:1;padding:13px;border:1.5px solid var(--border);border-radius:12px;
+  background:#fff;font-size:15px;font-family:inherit;cursor:pointer;color:var(--t2)}
+.btn-del{flex:1;padding:13px;border:none;border-radius:12px;
+  background:var(--red-bg);font-size:15px;font-weight:600;
+  font-family:inherit;cursor:pointer;color:var(--red)}
+.btn-del:active{opacity:.8}
+</style>
+</head>
+<body>
+
+<div id="root">
+
+  <!-- ══ 主页 ══ -->
+  <div id="page-home" class="page active">
+    <div class="safe-top"></div>
+    <div class="scroll" id="home-scroll">
+      <div class="hd">
+        <div class="hd-l">
+          <div class="date" id="date-lbl"></div>
+          <div class="title">今日打卡</div>
+        </div>
+        <div class="streak-pill">🔥&ensp;<span id="streak-n">0</span>&ensp;天连续</div>
+      </div>
+      <div class="prog-row">
+        <span>今日进度</span>
+        <b><span id="done-n">0</span>&thinsp;/&thinsp;<span id="total-n">0</span></b>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0"></div></div>
+      <div class="banner" id="banner">🎉&ensp;太棒了！今日任务全部完成！</div>
+      <div class="task-list" id="task-list"></div>
+      <div class="sect-lbl">近 30 天记录</div>
+      <div class="hist-grid" id="hist-grid"></div>
+    </div>
+    <div class="tabbar" id="tab-home"></div>
+  </div>
+
+  <!-- ══ 添加页 ══ -->
+  <div id="page-add" class="page">
+    <div class="safe-top"></div>
+    <div class="scroll">
+      <div class="page-title">新增打卡事项</div>
+      <div class="form-lbl">选择图标</div>
+      <div class="emoji-grid" id="emoji-grid"></div>
+      <div class="form-lbl">事项名称</div>
+      <input class="txt-inp" id="task-inp" type="text"
+             placeholder="例：喝够 8 杯水" maxlength="20">
+      <button class="btn-primary" onclick="confirmAdd()">✓&ensp;添加事项</button>
+    </div>
+    <div class="tabbar" id="tab-add"></div>
+  </div>
+
+  <!-- ══ 统计页 ══ -->
+  <div id="page-stats" class="page">
+    <div class="safe-top"></div>
+    <div class="scroll">
+      <div class="page-title">打卡统计</div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="sect-lbl">近 30 天完成情况</div>
+      <div class="hist-grid" id="hist30"></div>
+      <div class="sect-lbl">各项完成率（近 30 天）</div>
+      <div class="ts-list" id="ts-list"></div>
+    </div>
+    <div class="tabbar" id="tab-stats"></div>
+  </div>
+
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal-overlay" id="del-modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-title">删除事项</div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="hideModal()">取消</button>
+      <button class="btn-del" id="modal-confirm">删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMOJIS=['💧','📚','🏃','💪','🥗','😴','🧘','✍️','🎯','🌿','🎵','🎨','💊','🌅','🧹','🐾','☀️','🧴','🍎','📌'];
+const TABS=[{id:'home',icon:'☑️',lbl:'打卡'},{id:'add',icon:'＋',lbl:'添加'},{id:'stats',icon:'📊',lbl:'统计'}];
+const LS_T='dc_tasks2', LS_L='dc_logs2';
+const DEF=[{id:1,emoji:'💧',text:'喝够 8 杯水'},{id:2,emoji:'📚',text:'阅读 30 分钟'},{id:3,emoji:'🏃',text:'运动锻炼'}];
+
+let tasks=[], logs={}, selEmoji=EMOJIS[0], curPage='home';
+
+// ── 数据 ──────────────────────────────────────────────
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${S2(d.getMonth()+1)}-${S2(d.getDate())}`}
+function dateOf(n){const d=new Date();d.setDate(d.getDate()-n);return`${d.getFullYear()}-${S2(d.getMonth()+1)}-${S2(d.getDate())}`}
+function S2(n){return String(n).padStart(2,'0')}
+function load(){
+  try{tasks=JSON.parse(localStorage.getItem(LS_T))||DEF.map(t=>({...t}))}catch(e){tasks=DEF.map(t=>({...t}))}
+  try{logs=JSON.parse(localStorage.getItem(LS_L))||{}}catch(e){logs={}}
+}
+function save(){localStorage.setItem(LS_T,JSON.stringify(tasks));localStorage.setItem(LS_L,JSON.stringify(logs))}
+function todayLog(){if(!logs[todayStr()])logs[todayStr()]={};return logs[todayStr()]}
+function isDone(id){return!!todayLog()[String(id)]}
+function doneOn(s){const l=logs[s]||{};return tasks.filter(t=>l[String(t.id)]).length}
+
+// ── 导航 ──────────────────────────────────────────────
+function buildTabs(){
+  ['home','add','stats'].forEach(pid=>{
+    const bar=document.getElementById(`tab-${pid}`);
+    bar.innerHTML='';
+    TABS.forEach(t=>{
+      const b=document.createElement('button');
+      b.className='tab'+(t.id===curPage?' on':'');
+      b.innerHTML=`<span class="tab-icon">${t.icon}</span><span class="tab-lbl">${t.lbl}</span>`;
+      b.onclick=()=>nav(t.id);
+      bar.appendChild(b);
+    });
+  });
+}
+function nav(id){
+  if(id===curPage)return;
+  curPage=id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  buildTabs();
+  if(id==='stats')renderStats();
+  if(id==='add'){buildEmojiGrid();document.getElementById('task-inp').value=''}
+}
+
+// ── 主页 ──────────────────────────────────────────────
+function renderHome(){
+  // 日期
+  const d=new Date(),wds=['日','一','二','三','四','五','六'];
+  document.getElementById('date-lbl').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 · 星期${wds[d.getDay()]}`;
+  // 进度
+  const done=tasks.filter(t=>isDone(t.id)).length, total=tasks.length;
+  document.getElementById('done-n').textContent=done;
+  document.getElementById('total-n').textContent=total;
+  document.getElementById('prog-fill').style.width=(total>0?Math.round(done/total*100):0)+'%';
+  const bn=document.getElementById('banner');
+  done>0&&done===total?bn.classList.add('show'):bn.classList.remove('show');
+  // 任务
+  const list=document.getElementById('task-list');
+  list.innerHTML='';
+  if(!tasks.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">✨</div><div class="empty-text">还没有事项，去「添加」标签新建吧</div></div>';
+  } else {
+    tasks.forEach(t=>{
+      const done=isDone(t.id), card=document.createElement('div');
+      card.className='task-card'+(done?' done':'');
+      card.innerHTML=`<div class="chk"><svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 4,9 11,1"/></svg></div><span class="t-em">${t.emoji}</span><span class="t-tx">${t.text}</span><span class="t-del" data-id="${t.id}">✕</span>`;
+      card.querySelector('.t-del').addEventListener('pointerdown',e=>e.stopPropagation());
+      card.querySelector('.t-del').addEventListener('click',e=>{e.stopPropagation();showModal(t.id,t.text)});
+      card.addEventListener('click',()=>{
+        const log=todayLog(),sid=String(t.id);
+        if(log[sid]){delete log[sid];}
+        else{log[sid]=1;card.classList.add('popping');card.addEventListener('animationend',()=>card.classList.remove('popping'),{once:true})}
+        save();renderHome();
+      });
+      list.appendChild(card);
+    });
+  }
+  // 热力图
+  const hg=document.getElementById('hist-grid');
+  hg.innerHTML='';
+  const today=todayStr();
+  for(let i=29;i>=0;i--){
+    const s=dateOf(i),dn=doneOn(s),tot=tasks.length;
+    let cls='hc';
+    if(tot>0){if(dn===tot)cls+=' full';else if(dn>0)cls+=' part'}
+    if(s===today)cls+=' today';
+    const el=document.createElement('div');
+    el.className=cls;
+    const d2=new Date();d2.setDate(d2.getDate()-i);
+    el.textContent=d2.getDate();
+    hg.appendChild(el);
+  }
+  // 连续
+  let n=0;
+  for(let i=0;i<3650;i++){const s=dateOf(i),dn=doneOn(s);if(tasks.length>0&&dn===tasks.length)n++;else break}
+  document.getElementById('streak-n').textContent=n;
+}
+
+// ── 添加页 ────────────────────────────────────────────
+function buildEmojiGrid(){
+  selEmoji=EMOJIS[0];
+  const g=document.getElementById('emoji-grid');
+  g.innerHTML='';
+  EMOJIS.forEach((em,i)=>{
+    const b=document.createElement('button');
+    b.className='e-btn'+(i===0?' sel':'');
+    b.textContent=em;
+    b.onclick=()=>{document.querySelectorAll('.e-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');selEmoji=em};
+    g.appendChild(b);
+  });
+}
+function confirmAdd(){
+  const inp=document.getElementById('task-inp'),text=inp.value.trim();
+  if(!text){inp.focus();return}
+  tasks.push({id:Math.max(0,...tasks.map(t=>t.id))+1,emoji:selEmoji,text});
+  save();inp.value='';
+  nav('home');renderHome();
+}
+document.getElementById('task-inp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd()});
+
+// ── 统计页 ────────────────────────────────────────────
+function renderStats(){
+  let streak=0,best=0,tmp=0,days30=0;
+  for(let i=0;i<3650;i++){const s=dateOf(i),dn=doneOn(s),tot=tasks.length;if(tot>0&&dn===tot){streak++;if(i<30)days30++;}else break}
+  for(let i=0;i<365;i++){const s=dateOf(i),dn=doneOn(s),tot=tasks.length;if(tot>0&&dn===tot){tmp++;if(tmp>best)best=tmp}else tmp=0}
+  const td=tasks.filter(t=>isDone(t.id)).length;
+  document.getElementById('stat-grid').innerHTML=`
+    <div class="stat-card g"><div class="stat-num">${streak}</div><div class="stat-desc">🔥 当前连续天数</div></div>
+    <div class="stat-card a"><div class="stat-num">${best}</div><div class="stat-desc">🏆 历史最长连续</div></div>
+    <div class="stat-card"><div class="stat-num">${days30}</div><div class="stat-desc">📅 近30天全完成</div></div>
+    <div class="stat-card"><div class="stat-num">${td}/${tasks.length}</div><div class="stat-desc">✅ 今日完成</div></div>`;
+  const g=document.getElementById('hist30');g.innerHTML='';
+  for(let i=29;i>=0;i--){const s=dateOf(i),dn=doneOn(s),tot=tasks.length;let cls='hc';if(tot>0){if(dn===tot)cls+=' full';else if(dn>0)cls+=' part'}if(i===0)cls+=' today';const el=document.createElement('div');el.className=cls;const d2=new Date();d2.setDate(d2.getDate()-i);el.textContent=d2.getDate();g.appendChild(el)}
+  const tl=document.getElementById('ts-list');tl.innerHTML='';
+  if(!tasks.length){tl.innerHTML='<div style="text-align:center;color:var(--t3);font-size:14px;padding:20px 0">暂无任务</div>';return}
+  tasks.forEach(t=>{let cnt=0;for(let i=0;i<30;i++){const l=logs[dateOf(i)]||{};if(l[String(t.id)])cnt++}const pct=Math.round(cnt/30*100);const row=document.createElement('div');row.className='ts-row';row.innerHTML=`<div class="ts-top"><span class="ts-name">${t.emoji} ${t.text}</span><span class="ts-pct">${pct}%</span></div><div class="ts-bg"><div class="ts-fill" style="width:${pct}%"></div></div>`;tl.appendChild(row)});
+}
+
+// ── 删除弹窗 ──────────────────────────────────────────
+let pendingDelId=null;
+function showModal(id,text){
+  pendingDelId=id;
+  document.getElementById('modal-sub').textContent=`确定要删除「${text}」吗？`;
+  document.getElementById('modal-confirm').onclick=doDelete;
+  document.getElementById('del-modal').classList.add('show');
+}
+function hideModal(){document.getElementById('del-modal').classList.remove('show');pendingDelId=null}
+function closeModal(e){if(e.target===document.getElementById('del-modal'))hideModal()}
+function doDelete(){if(pendingDelId===null)return;tasks=tasks.filter(t=>t.id!==pendingDelId);save();hideModal();renderHome()}
+
+// ── 启动 ──────────────────────────────────────────────
+load();buildTabs();buildEmojiGrid();renderHome();
+</script>
+</body>
+</html>
